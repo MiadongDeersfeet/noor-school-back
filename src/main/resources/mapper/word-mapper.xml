@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.noorschool.word.mapper.WordMapper">
+	
+	<!-- 랜덤으로 단어를 조회합니다. -->
+	<select id="selectRandomWords" resultType="com.noorschool.word.model.vo.WordVO">
+    SELECT *
+    FROM (
+        SELECT
+            WORD_ID,
+            WORD_KO,
+            WORD_AR,
+            POS,
+            DIFFICULTY,
+            CATEGORY,
+            FREQUENCY,
+            IS_PREMIUM,
+            IS_ACTIVE,
+            CREATED_AT
+        FROM TB_WORD
+        WHERE IS_ACTIVE = 'Y'
+        ORDER BY DBMS_RANDOM.VALUE
+    )
+    WHERE ROWNUM <![CDATA[<=]]> #{count}
+</select>
+
+	<!-- 정답이 아닌 단어를 조회합니다. -->
+<select id="selectRandomWrongWords" resultType="com.noorschool.word.model.vo.WordVO">
+    SELECT *
+    FROM (
+        SELECT
+            WORD_ID,
+            WORD_KO,
+            WORD_AR,
+            POS,
+            DIFFICULTY,
+            CATEGORY,
+            FREQUENCY,
+            IS_PREMIUM,
+            IS_ACTIVE,
+            CREATED_AT
+        FROM TB_WORD
+        WHERE IS_ACTIVE = 'Y'
+          AND WORD_ID != #{wordId}
+        ORDER BY DBMS_RANDOM.VALUE
+    )
+    WHERE ROWNUM <![CDATA[<=]]> #{count}
+</select>
+	
+	<!-- 사용자가 선택한 정답을 서버에서 채점합니다. -->
+<select id="selectWordById" resultType="com.noorschool.word.model.vo.WordVO">
+    SELECT
+        WORD_ID,
+        WORD_KO,
+        WORD_AR,
+        POS,
+        DIFFICULTY,
+        CATEGORY,
+        FREQUENCY,
+        IS_PREMIUM,
+        IS_ACTIVE,
+        CREATED_AT
+    FROM TB_WORD
+    WHERE WORD_ID = #{wordId}
+      AND IS_ACTIVE = 'Y'
+</select>	
+	
+	
+	
+</mapper>
+	
