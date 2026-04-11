@@ -6,7 +6,8 @@ spring:
     import: optional:classpath:application-private.yml
 
 server:
-  port: 8080
+  port: ${PORT:10000}
+  address: 0.0.0.0
 
 mybatis:
   mapper-locations: classpath:/mapper/**/*.xml
