@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: noorschool-back
+
+  # private 설정 파일 import (핵심)
+  config:
+    import: optional:classpath:application-private.yml
+
+server:
+  port: 8080
+
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.noorschool
+
+logging:
+  level:
+    com.noorschool: debug
