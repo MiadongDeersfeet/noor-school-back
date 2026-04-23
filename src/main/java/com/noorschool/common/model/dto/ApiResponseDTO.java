@@ -39,6 +39,13 @@ public class ApiResponseDTO<T> {
     }
 
     /**
+     * ResultCode를 지정해 사용자 정의 메시지로 성공 응답을 생성합니다.
+     */
+    public static <T> ApiResponseDTO<T> success(ResultCode resultCode, String message, T data) {
+        return new ApiResponseDTO<>(true, resultCode.getCode(), message, data);
+    }
+
+    /**
      * 실패 응답 생성 헬퍼입니다. (기본 메시지 사용)
      */
     public static ApiResponseDTO<ErrorResponseDTO> fail(ResultCode resultCode) {
@@ -64,6 +71,17 @@ public class ApiResponseDTO<T> {
      */
     public static <T> ResponseEntity<ApiResponseDTO<T>> toResponseEntity(ResultCode resultCode, T data) {
         return ResponseEntity.status(resultCode.getStatus()).body(success(resultCode, data));
+    }
+
+    /**
+     * ResultCode의 HTTP 상태를 사용해 사용자 정의 메시지 성공 ResponseEntity를 생성합니다.
+     */
+    public static <T> ResponseEntity<ApiResponseDTO<T>> toResponseEntity(
+            ResultCode resultCode,
+            String message,
+            T data
+    ) {
+        return ResponseEntity.status(resultCode.getStatus()).body(success(resultCode, message, data));
     }
 
     /**
