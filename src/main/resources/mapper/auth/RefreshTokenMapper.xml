@@ -3,5 +3,57 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.noorschool.auth.mapper.RefreshTokenMapper">
+    <resultMap id="RefreshTokenResultMap" type="com.noorschool.auth.model.dto.RefreshTokenRecordDTO">
+        <id property="tokenId" column="TOKEN_ID"/>
+        <result property="memberId" column="MEMBER_ID"/>
+        <result property="refreshToken" column="REFRESH_TOKEN"/>
+        <result property="expiresAt" column="EXPIRES_AT"/>
+        <result property="isRevoked" column="IS_REVOKED"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="updatedAt" column="UPDATED_AT"/>
+    </resultMap>
 
+    <select id="selectActiveByToken" resultMap="RefreshTokenResultMap">
+        SELECT *
+        FROM TB_REFRESH_TOKEN
+        WHERE REFRESH_TOKEN = #{refreshToken}
+          AND IS_REVOKED = 'N'
+          AND EXPIRES_AT > SYSDATE
+    </select>
+
+    <update id="revokeAllByMemberId">
+        UPDATE TB_REFRESH_TOKEN
+        SET
+            IS_REVOKED = 'Y',
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_ID = #{memberId}
+          AND IS_REVOKED = 'N'
+    </update>
+
+    <update id="revokeByToken">
+        UPDATE TB_REFRESH_TOKEN
+        SET
+            IS_REVOKED = 'Y',
+            UPDATED_AT = SYSDATE
+        WHERE REFRESH_TOKEN = #{refreshToken}
+          AND IS_REVOKED = 'N'
+    </update>
+
+    <insert id="insertRefreshToken">
+        INSERT INTO TB_REFRESH_TOKEN (
+            MEMBER_ID,
+            REFRESH_TOKEN,
+            EXPIRES_AT,
+            IS_REVOKED,
+            CREATED_AT,
+            UPDATED_AT
+        ) VALUES (
+            #{memberId},
+            #{refreshToken},
+            #{expiresAt},
+            'N',
+            SYSDATE,
+            SYSDATE
+        )
+    </insert>
 </mapper>

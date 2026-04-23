@@ -3,5 +3,84 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.noorschool.member.mapper.MemberMapper">
+    <resultMap id="MemberResultMap" type="com.noorschool.member.model.dto.MemberDTO">
+        <id property="memberId" column="MEMBER_ID"/>
+        <result property="googleSub" column="GOOGLE_SUB"/>
+        <result property="email" column="EMAIL"/>
+        <result property="name" column="NAME"/>
+        <result property="nickname" column="NICKNAME"/>
+        <result property="profileImage" column="PROFILE_IMAGE"/>
+        <result property="role" column="ROLE"/>
+        <result property="status" column="STATUS"/>
+        <result property="lastLoginAt" column="LAST_LOGIN_AT"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="updatedAt" column="UPDATED_AT"/>
+    </resultMap>
 
+    <select id="selectByGoogleSub" resultMap="MemberResultMap">
+        SELECT *
+        FROM TB_MEMBER
+        WHERE GOOGLE_SUB = #{googleSub}
+    </select>
+
+    <select id="selectByMemberId" resultMap="MemberResultMap">
+        SELECT *
+        FROM TB_MEMBER
+        WHERE MEMBER_ID = #{memberId}
+    </select>
+
+    <select id="selectByEmail" resultMap="MemberResultMap">
+        SELECT *
+        FROM TB_MEMBER
+        WHERE EMAIL = #{email}
+    </select>
+
+    <insert id="insertMember" parameterType="com.noorschool.member.model.dto.MemberUpsertDTO"
+            useGeneratedKeys="true" keyProperty="memberId" keyColumn="MEMBER_ID">
+        INSERT INTO TB_MEMBER (
+            GOOGLE_SUB,
+            EMAIL,
+            NAME,
+            NICKNAME,
+            PROFILE_IMAGE,
+            ROLE,
+            STATUS,
+            LAST_LOGIN_AT,
+            CREATED_AT,
+            UPDATED_AT
+        ) VALUES (
+            #{googleSub},
+            #{email},
+            #{name},
+            #{nickname},
+            #{profileImage},
+            #{role},
+            #{status},
+            SYSDATE,
+            SYSDATE,
+            SYSDATE
+        )
+    </insert>
+
+    <update id="updateMember" parameterType="com.noorschool.member.model.dto.MemberUpsertDTO">
+        UPDATE TB_MEMBER
+        SET
+            GOOGLE_SUB = #{googleSub},
+            EMAIL = #{email},
+            NAME = #{name},
+            NICKNAME = #{nickname},
+            PROFILE_IMAGE = #{profileImage},
+            ROLE = #{role},
+            STATUS = #{status},
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <update id="updateLastLoginAt">
+        UPDATE TB_MEMBER
+        SET
+            LAST_LOGIN_AT = SYSDATE,
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_ID = #{memberId}
+    </update>
 </mapper>

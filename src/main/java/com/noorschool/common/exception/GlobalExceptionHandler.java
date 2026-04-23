@@ -8,6 +8,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 애플리케이션 전역 예외를 공통 응답 포맷으로 변환하는 핸들러입니다.
@@ -29,6 +30,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
     public ResponseEntity<ApiResponseDTO<ErrorResponseDTO>> handleValidationException(Exception ex) {
         return ApiResponseDTO.toErrorResponseEntity(ResultCode.INVALID_REQUEST, "요청 값 검증에 실패했습니다.");
+    }
+
+    /**
+     * 정적 리소스/엔드포인트 미존재(404) 처리.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponseDTO<ErrorResponseDTO>> handleNotFound(NoResourceFoundException ex) {
+        return ApiResponseDTO.toErrorResponseEntity(ResultCode.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다.");
     }
 
     /**
