@@ -1,0 +1,87 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build and test
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean test bootJar
+
+      - name: Copy jar to OCI server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USER }}
+          key: ${{ secrets.OCI_SSH_KEY }}
+          port: ${{ secrets.OCI_PORT }}
+          source: "build/libs/*.jar"
+          target: "~/noorschool"
+          strip_components: 2
+
+      - name: Restart backend on OCI server
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SPRING_PROFILES_ACTIVE: ${{ secrets.SPRING_PROFILES_ACTIVE }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          AUTH_ALLOWED_ORIGINS: ${{ secrets.AUTH_ALLOWED_ORIGINS }}
+          AUTH_COOKIE_DOMAIN: ${{ secrets.AUTH_COOKIE_DOMAIN }}
+          OAUTH2_SUCCESS_REDIRECT_URI: ${{ secrets.OAUTH2_SUCCESS_REDIRECT_URI }}
+          OAUTH2_FAILURE_REDIRECT_URI: ${{ secrets.OAUTH2_FAILURE_REDIRECT_URI }}
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USER }}
+          key: ${{ secrets.OCI_SSH_KEY }}
+          port: ${{ secrets.OCI_PORT }}
+          envs: SPRING_PROFILES_ACTIVE,DB_URL,DB_USERNAME,DB_PASSWORD,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,JWT_SECRET,AUTH_ALLOWED_ORIGINS,AUTH_COOKIE_DOMAIN,OAUTH2_SUCCESS_REDIRECT_URI,OAUTH2_FAILURE_REDIRECT_URI
+          script_stop: true
+          script: |
+            set -e
+
+            APP_DIR="$HOME/noorschool"
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            LATEST_JAR="$(ls -t ./*.jar | head -n 1)"
+            cp "$LATEST_JAR" ./app.jar
+
+            cat > .env.prod <<EOF
+            SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+            DB_URL=${DB_URL}
+            DB_USERNAME=${DB_USERNAME}
+            DB_PASSWORD=${DB_PASSWORD}
+            GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+            JWT_SECRET=${JWT_SECRET}
+            AUTH_ALLOWED_ORIGINS=${AUTH_ALLOWED_ORIGINS}
+            AUTH_COOKIE_DOMAIN=${AUTH_COOKIE_DOMAIN}
+            OAUTH2_SUCCESS_REDIRECT_URI=${OAUTH2_SUCCESS_REDIRECT_URI}
+            OAUTH2_FAILURE_REDIRECT_URI=${OAUTH2_FAILURE_REDIRECT_URI}
+            EOF
+
+            pkill -f 'java -jar ./app.jar' || true
+            nohup bash -c "set -a && source .env.prod && set +a && java -jar ./app.jar" > app.log 2>&1 &
+
+            sleep 15
+            curl -fsS http://127.0.0.1:8080/actuator/health > /dev/null
