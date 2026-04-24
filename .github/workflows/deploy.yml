@@ -80,11 +80,12 @@ jobs:
             OAUTH2_FAILURE_REDIRECT_URI=${OAUTH2_FAILURE_REDIRECT_URI}
             EOF
 
-            if [ -f app.pid ] && kill -0 "$(cat app.pid)" 2>/dev/null; then
-              kill "$(cat app.pid)" || true
-              sleep 2
-            fi
-            nohup bash -c "set -a && source .env.prod && set +a && java -jar ./app.jar" > app.log 2>&1 &
+            # java 프로세스 직접 종료 (래퍼 bash까지 포함)
+            pkill -f "app.jar" || true
+            sleep 3
+
+            set -a && source .env.prod && set +a
+            nohup java -jar ./app.jar > app.log 2>&1 &
             echo $! > app.pid
 
             # Wait for startup (max 90s) and print logs if failed.
