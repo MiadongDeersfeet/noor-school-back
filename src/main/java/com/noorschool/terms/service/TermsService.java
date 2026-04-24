@@ -76,7 +76,7 @@ public class TermsService {
                 .nickname(profile.getName())
                 .profileImage(profile.getProfileImage())
                 .role(MemberRoleType.LEARNER.name())
-                .status("Y")
+                .status("ACTIVE")
                 .build());
 
         MemberDTO member = memberService.findByGoogleSub(profile.getGoogleSub());

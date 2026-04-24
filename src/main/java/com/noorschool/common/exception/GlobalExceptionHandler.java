@@ -3,6 +3,7 @@ package com.noorschool.common.exception;
 import com.noorschool.common.model.dto.ApiResponseDTO;
 import com.noorschool.common.model.dto.ErrorResponseDTO;
 import com.noorschool.common.model.vo.ResultCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 /**
  * 애플리케이션 전역 예외를 공통 응답 포맷으로 변환하는 핸들러입니다.
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -45,6 +47,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDTO<ErrorResponseDTO>> handleException(Exception ex) {
+        log.error("[UNHANDLED EXCEPTION] {}: {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
         return ApiResponseDTO.toErrorResponseEntity(ResultCode.INTERNAL_ERROR);
     }
 }
