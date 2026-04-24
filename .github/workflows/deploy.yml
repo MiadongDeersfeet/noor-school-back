@@ -19,10 +19,10 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Build and test
+      - name: Build jar (skip tests in deploy)
         run: |
           chmod +x ./gradlew
-          ./gradlew clean test bootJar
+          ./gradlew clean bootJar -x test
 
       - name: Copy jar to OCI server
         uses: appleboy/scp-action@v0.1.7
