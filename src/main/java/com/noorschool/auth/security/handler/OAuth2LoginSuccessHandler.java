@@ -48,23 +48,37 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                         .build()
         );
 
-        response.addHeader(
-                HttpHeaders.SET_COOKIE,
-                authCookieService.createRefreshCookie(
-                        tokenResponse.getRefreshToken(),
-                        tokenResponse.getRefreshTokenExpiresIn()
-                ).toString()
-        );
+        String redirectUrl;
 
-        String redirectUrl = UriComponentsBuilder.fromUriString(successRedirectUri)
-                .queryParam("accessToken", tokenResponse.getAccessToken())
-                .queryParam("memberId", tokenResponse.getMemberId())
-                .queryParam("email", tokenResponse.getEmail())
-                .queryParam("name", tokenResponse.getName())
-                .queryParam("role", tokenResponse.getRole())
-                .encode()
-                .build()
-                .toUriString();
+        if (tokenResponse.isNewMember()) {
+            // 신규 회원: 아직 DB에 아무것도 저장되지 않음. signupToken만 전달.
+            // 쿠키 미발급 (리프레시 토큰 없음).
+            redirectUrl = UriComponentsBuilder.fromUriString(successRedirectUri)
+                    .queryParam("isNewMember", "true")
+                    .queryParam("signupToken", tokenResponse.getSignupToken())
+                    .encode()
+                    .build()
+                    .toUriString();
+        } else {
+            // 기존 회원: 리프레시 쿠키 발급 후 토큰 정보 전달.
+            response.addHeader(
+                    HttpHeaders.SET_COOKIE,
+                    authCookieService.createRefreshCookie(
+                            tokenResponse.getRefreshToken(),
+                            tokenResponse.getRefreshTokenExpiresIn()
+                    ).toString()
+            );
+            redirectUrl = UriComponentsBuilder.fromUriString(successRedirectUri)
+                    .queryParam("accessToken", tokenResponse.getAccessToken())
+                    .queryParam("memberId", tokenResponse.getMemberId())
+                    .queryParam("email", tokenResponse.getEmail())
+                    .queryParam("name", tokenResponse.getName())
+                    .queryParam("role", tokenResponse.getRole())
+                    .queryParam("isNewMember", "false")
+                    .encode()
+                    .build()
+                    .toUriString();
+        }
 
         response.sendRedirect(redirectUrl);
     }

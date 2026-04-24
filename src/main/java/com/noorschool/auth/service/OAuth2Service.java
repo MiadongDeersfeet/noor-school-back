@@ -29,9 +29,24 @@ public class OAuth2Service {
             throw new BusinessException(ResultCode.INVALID_REQUEST, "구글 이메일 정보가 없습니다.");
         }
 
+        boolean isNew = memberService.findByGoogleSub(profile.getGoogleSub()) == null
+                && memberService.findByEmail(profile.getEmail()) == null;
+
+        if (isNew) {
+            // 신규 회원은 DB에 아무것도 저장하지 않는다.
+            // 약관 동의 완료 시점에 TB_MEMBER + TB_TERMS_AGREEMENT + TB_REFRESH_TOKEN 을 한 트랜잭션으로 처리.
+            String signupToken = jwtService.createSignupToken(
+                    profile.getGoogleSub(), profile.getEmail(),
+                    profile.getName(), profile.getProfileImage());
+            return AuthTokenResponseDTO.builder()
+                    .isNewMember(true)
+                    .signupToken(signupToken)
+                    .build();
+        }
+
         MemberDTO member = upsertMember(profile);
         memberService.touchLastLogin(member.getMemberId());
-        return issueTokens(member);
+        return issueTokens(member, false);
     }
 
     @Transactional
@@ -55,7 +70,7 @@ public class OAuth2Service {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "사용할 수 없는 회원입니다.");
         }
 
-        return issueTokens(member);
+        return issueTokens(member, false);
     }
 
     private MemberDTO upsertMember(OAuth2UserProfileDTO profile) {
@@ -101,7 +116,7 @@ public class OAuth2Service {
         return memberService.findByGoogleSub(profile.getGoogleSub());
     }
 
-    private AuthTokenResponseDTO issueTokens(MemberDTO member) {
+    private AuthTokenResponseDTO issueTokens(MemberDTO member, boolean isNewMember) {
         String accessToken = jwtService.createAccessToken(member.getMemberId(), member.getEmail(), member.getRole());
         String refreshToken = jwtService.createRefreshToken(member.getMemberId());
         refreshTokenService.rotateRefreshToken(
@@ -119,6 +134,7 @@ public class OAuth2Service {
                 .refreshToken(refreshToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationSeconds())
                 .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationSeconds())
+                .isNewMember(isNewMember)
                 .build();
     }
 }
