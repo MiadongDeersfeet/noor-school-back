@@ -87,5 +87,15 @@ jobs:
             nohup bash -c "set -a && source .env.prod && set +a && java -jar ./app.jar" > app.log 2>&1 &
             echo $! > app.pid
 
-            sleep 15
-            curl -fsS http://127.0.0.1:8080/actuator/health > /dev/null
+            # Wait for startup (max 90s) and print logs if failed.
+            for i in $(seq 1 30); do
+              if curl -fsS http://127.0.0.1:8080/actuator/health > /dev/null; then
+                echo "Health check passed."
+                exit 0
+              fi
+              sleep 3
+            done
+
+            echo "Health check failed. Last app logs:"
+            tail -n 200 app.log || true
+            exit 1
