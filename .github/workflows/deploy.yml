@@ -80,8 +80,12 @@ jobs:
             OAUTH2_FAILURE_REDIRECT_URI=${OAUTH2_FAILURE_REDIRECT_URI}
             EOF
 
-            pkill -f 'java -jar ./app.jar' || true
+            if [ -f app.pid ] && kill -0 "$(cat app.pid)" 2>/dev/null; then
+              kill "$(cat app.pid)" || true
+              sleep 2
+            fi
             nohup bash -c "set -a && source .env.prod && set +a && java -jar ./app.jar" > app.log 2>&1 &
+            echo $! > app.pid
 
             sleep 15
             curl -fsS http://127.0.0.1:8080/actuator/health > /dev/null
