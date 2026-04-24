@@ -40,3 +40,6 @@ out/
 # ===== 중요: 민감정보 =====
 src/main/resources/application-private.yml
 src/main/resources/application-private-*.yml
+
+# ===== DB 스크립트 (로컬/DBA 용도, 배포 불필요) =====
+src/main/resources/db/
