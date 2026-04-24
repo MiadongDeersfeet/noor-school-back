@@ -80,10 +80,13 @@ jobs:
             OAUTH2_FAILURE_REDIRECT_URI=${OAUTH2_FAILURE_REDIRECT_URI}
             EOF
 
-            # java 프로세스 직접 종료 (래퍼 bash까지 포함)
-            pkill -f "app.jar" || true
-            sleep 3
+            # 이전 java 프로세스 종료 (app.pid = java PID)
+            if [ -f app.pid ] && kill -0 "$(cat app.pid)" 2>/dev/null; then
+              kill "$(cat app.pid)" || true
+              sleep 3
+            fi
 
+            # 환경변수 로드 후 java 직접 실행 → $! 는 java PID
             set -a && source .env.prod && set +a
             nohup java -jar ./app.jar > app.log 2>&1 &
             echo $! > app.pid
