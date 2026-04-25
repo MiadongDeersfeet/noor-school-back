@@ -42,6 +42,21 @@ app:
       access-token-expiration-seconds: ${JWT_ACCESS_TOKEN_EXP_SECONDS:3600}
       refresh-token-expiration-seconds: ${JWT_REFRESH_TOKEN_EXP_SECONDS:1209600}
 
+azure:
+  speech:
+    # 로컬: application-private.yml에서 주입
+    # 운영: Azure App Service > 환경 변수에서 주입
+    key: ${AZURE_SPEECH_KEY:}
+    region: ${AZURE_SPEECH_REGION:koreacentral}
+    voice-name: ${AZURE_SPEECH_VOICE_NAME:ko-KR-SunHiNeural}
+    output-format: ${AZURE_SPEECH_OUTPUT_FORMAT:audio-16khz-32kbitrate-mono-mp3}
+
+file:
+  # 로컬: application-private.yml에서 주입 (또는 기본값 사용)
+  # 운영: Azure App Service > 환경 변수에서 주입
+  audio-dir: ${AUDIO_DIR:uploads/audio/words}
+  audio-url-prefix: ${AUDIO_URL_PREFIX:/audio/words}
+
 mybatis:
   mapper-locations: classpath:/mapper/**/*.xml
   type-aliases-package: com.noorschool

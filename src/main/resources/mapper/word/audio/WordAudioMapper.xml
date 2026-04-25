@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.noorschool.word.audio.mapper.WordAudioMapper">
+
+    <select id="selectWordAudio" resultType="com.noorschool.word.audio.model.vo.WordAudioVO">
+        SELECT
+            AUDIO_ID,
+            WORD_ID,
+            LANGUAGE_CODE,
+            VOICE_NAME,
+            AUDIO_TYPE,
+            SPEAKING_RATE,
+            AUDIO_URL,
+            STORAGE_KEY,
+            PROVIDER,
+            FORMAT,
+            IS_ACTIVE,
+            CREATED_AT,
+            UPDATED_AT
+        FROM TB_WORD_AUDIO
+        WHERE WORD_ID = #{wordId}
+          AND LANGUAGE_CODE = #{languageCode}
+          AND AUDIO_TYPE = #{audioType}
+          AND SPEAKING_RATE = #{speakingRate}
+          AND VOICE_NAME = #{voiceName}
+          AND IS_ACTIVE = 'Y'
+    </select>
+
+    <insert id="insertWordAudio" parameterType="com.noorschool.word.audio.model.vo.WordAudioVO">
+        INSERT INTO TB_WORD_AUDIO (
+            WORD_ID,
+            LANGUAGE_CODE,
+            VOICE_NAME,
+            AUDIO_TYPE,
+            SPEAKING_RATE,
+            AUDIO_URL,
+            STORAGE_KEY,
+            PROVIDER,
+            FORMAT,
+            IS_ACTIVE
+        ) VALUES (
+            #{wordId},
+            #{languageCode},
+            #{voiceName},
+            #{audioType},
+            #{speakingRate},
+            #{audioUrl},
+            #{storageKey},
+            #{provider},
+            #{format},
+            #{isActive}
+        )
+    </insert>
+
+    <update id="deactivateWordAudio">
+        UPDATE TB_WORD_AUDIO
+        SET IS_ACTIVE = 'N',
+            UPDATED_AT = SYSTIMESTAMP
+        WHERE WORD_ID = #{wordId}
+          AND IS_ACTIVE = 'Y'
+    </update>
+
+</mapper>

@@ -12,6 +12,7 @@ import com.noorschool.quiz.model.dto.QuizResponseDTO;
 import com.noorschool.quiz.model.dto.QuizSetResponseDTO;
 import com.noorschool.quiz.model.dto.QuizSubmitRequestDTO;
 import com.noorschool.quiz.model.dto.QuizSubmitResponseDTO;
+import com.noorschool.quiz.model.vo.QuizWordVO;
 import com.noorschool.word.mapper.WordMapper;
 import com.noorschool.word.model.vo.WordVO;
 
@@ -43,8 +44,8 @@ public class QuizServiceImpl implements QuizService {
             throw new IllegalArgumentException("문제 수는 1 이상이어야 합니다.");
         }
 
-        // 1. 랜덤 단어 조회 (정답 후보)
-        List<WordVO> answerWords = wordMapper.selectRandomWords(count);
+        // 1. 랜덤 단어 조회 (정답 후보 - TB_WORD_AUDIO LEFT JOIN 포함)
+        List<QuizWordVO> answerWords = wordMapper.selectRandomWords(count);
 
         // 단어가 없을 경우 빈 응답 반환
         if (answerWords == null || answerWords.isEmpty()) {
@@ -62,7 +63,7 @@ public class QuizServiceImpl implements QuizService {
         List<QuizResponseDTO> quizzes = new ArrayList<>();
 
         // 2. 각 단어를 하나의 문제로 변환
-        for (WordVO answerWord : answerWords) {
+        for (QuizWordVO answerWord : answerWords) {
 
             // 보기 3개 생성 (정답 + 오답 2개)
             List<String> options = createOptions(answerWord);
@@ -74,6 +75,7 @@ public class QuizServiceImpl implements QuizService {
                     .options(options)
                     .category(answerWord.getCategory())
                     .difficulty(answerWord.getDifficulty())
+                    .correctAudioUrl(answerWord.getAudioUrl())
                     .build();
 
             quizzes.add(quiz);
@@ -97,7 +99,7 @@ public class QuizServiceImpl implements QuizService {
      * @param answerWord 정답 단어
      * @return 섞인 보기 리스트
      */
-    private List<String> createOptions(WordVO answerWord) {
+    private List<String> createOptions(QuizWordVO answerWord) {
 
         List<String> options = new ArrayList<>();
 

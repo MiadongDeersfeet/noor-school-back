@@ -7,6 +7,17 @@ spring:
     hikari:
       connection-init-sql: "ALTER SESSION DISABLE PARALLEL DML"
 
+azure:
+  speech:
+    key: ${AZURE_SPEECH_KEY}
+    region: ${AZURE_SPEECH_REGION:koreacentral}
+    voice-name: ${AZURE_SPEECH_VOICE_NAME:ko-KR-SunHiNeural}
+    output-format: ${AZURE_SPEECH_OUTPUT_FORMAT:audio-16khz-32kbitrate-mono-mp3}
+
+file:
+  audio-dir: ${AUDIO_DIR:/home/site/noorschool/audio/words}
+  audio-url-prefix: ${AUDIO_URL_PREFIX:/audio/words}
+
 logging:
   level:
     com.noorschool: info
